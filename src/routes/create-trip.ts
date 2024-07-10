@@ -21,8 +21,8 @@ export async function createTrip(app: FastifyInstance){
                 starts_at,
                 ends_at
             }
-        })
+        });
 
-       return { tripId : trip.id }
+       return { tripId : trip.id };
     })
 }
