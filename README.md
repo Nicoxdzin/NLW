@@ -1,4 +1,4 @@
-Installing dependencies from backend
+<!-- Installing dependencies from backend
 
 npm init -y ## inicializating project configurations
 npm i typescript @types/node -D ## installing typescrict on dev mode(production off)
@@ -22,7 +22,7 @@ now, version is 20
     "skipLibCheck": true,
     "moduleResolution": "node16"
   }
-}
+} 
 
 npm i tsx -D ## its good to run app
 npx tsx watch src/server.ts ## command to run app(include this on scripts in dev)
@@ -31,3 +31,15 @@ npm i fastify ## framework js to create api( + - express)
 
 npm i prisma -D ## Prisma helps in acess to database.(this technology uses migrations)
 npx prisma init --datasource-provider SQLite ## creating database config
+
+npx prisma migrate dev ## compare changes and update the database file to current update.
+
+npm i zod ## help to validate data
+
+npm i fastify-type-provider-zod ## better zod to use with fastify.
+
+npx prisma studio   ## view the tables 
+
+
+45:02 / 1:19:31 aula 1 
+ -->

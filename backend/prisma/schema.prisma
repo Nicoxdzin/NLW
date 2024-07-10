@@ -11,7 +11,7 @@ datasource db {
 }
 
 model Trip {
-  id String @id @default(uuid())
+  id String @id @default(uuid())//unique universal id
   destination String
   starts_at DateTime
   ends_at DateTime
