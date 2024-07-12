@@ -5,6 +5,7 @@ import { prisma } from "../lib/prisma";
 import nodemailer from 'nodemailer'
 import { getMailClient } from "../lib/mail";
 import dayjs from "dayjs";
+import { ClientError } from "../errors/client-error";
 
 
 export async function createTrip(app: FastifyInstance){
@@ -23,11 +24,11 @@ export async function createTrip(app: FastifyInstance){
        const { destination, starts_at, ends_at, owner_name, owner_email, emails_to_invite } = request.body
 
        if(dayjs(starts_at).isBefore(new Date())){
-        throw new Error('Invalid trip starts date')
+        throw new ClientError('Invalid trip starts date')
        }
 
        if(dayjs(ends_at).isBefore(starts_at)){
-        throw new Error('Invalid trip starts date. Start date is after end date.')
+        throw new ClientError('Invalid trip starts date. Start date is after end date.')
        }
 
         const trip = await prisma.trip.create({

@@ -2,40 +2,36 @@ import { FastifyInstance } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import {z} from "zod"
 import { prisma } from "../lib/prisma";
+import { dayjs } from "../lib/dayjs";
 import { ClientError } from "../errors/client-error";
 
-export async function createLink(app: FastifyInstance){
-    app.withTypeProvider<ZodTypeProvider>().post('/trips/:tripId/links',{
+export async function getTripDetails(app: FastifyInstance){
+    app.withTypeProvider<ZodTypeProvider>().get('/trips/:tripId',{
         schema: {
             params: z.object({
                 tripId: z.string().uuid()
             }),
-            body: z.object({
-                title: z.string().min(4),
-                url: z.string().url(),//convert string date do date date.
-            })
         }
     } ,async (request) => {
         
         const { tripId } = request.params
-        const { title , url } = request.body
 
         const trip = await prisma.trip.findUnique({
-            where: { id: tripId }
+              select:{
+                id: true,
+                destination: true,
+                starts_at: true,
+                ends_at: true,
+                is_confirmed: true
+            },
+            where: { id: tripId },
         })
 
         if(!trip){
             throw new ClientError('Trip not found')
         }
 
-        const link = await prisma.link.create({
-            data: {
-              title,
-              url,
-              trip_id: trip.id
-            }
-        })
 
-       return { LinkId : link.id };
+       return { trip };
     })
 }

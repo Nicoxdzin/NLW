@@ -2,56 +2,40 @@ import { FastifyInstance } from "fastify";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import {z} from "zod"
 import { prisma } from "../lib/prisma";
+import { dayjs } from "../lib/dayjs";
 import { getMailClient } from "../lib/mail";
 import nodemailer from 'nodemailer'
-import { dayjs }  from '../lib/dayjs'
 import { ClientError } from "../errors/client-error";
 
-
-export async function confirmTrip(app: FastifyInstance){
-    app.withTypeProvider<ZodTypeProvider>().get('/trips/:tripId/confirm',{
+export async function createInvite(app: FastifyInstance){
+    app.withTypeProvider<ZodTypeProvider>().post('/trips/:tripId/invites',{
         schema: {
             params: z.object({
-              tripId: z.string().uuid()
+                tripId: z.string().uuid()
+            }),
+            body: z.object({
+                email: z.string().email()
             })
         }
-    } ,async (request, reply) => {
-        const { tripId } = request.params;
+    } ,async (request) => {
+        
+        const { tripId } = request.params
+        const { email } = request.body
 
         const trip = await prisma.trip.findUnique({
-            where: {
-                id: tripId,
-            },
-            include: {
-                participant: {
-                    where: {
-                        is_owner: false
-                    }
-                }
-            }
+            where: { id: tripId }
         })
 
         if(!trip){
-            throw new ClientError('Trip not found.')
+            throw new ClientError('Trip not found')
         }
 
-        if(trip.is_confirmed){
-            return reply.redirect(`http://localhost:3000/trips/${tripId}`)
-        }
-
-        await prisma.trip.update({
-            where: {id: tripId},
-            data: { is_confirmed: true }
+        const participant = await prisma.participant.create({
+            data: {
+                email,
+                trip_id: tripId
+            }
         })
-
-        trip.participant
-
-        // const participants = await prisma.participant.findMany({
-        //     where: {
-        //         tripId : true,
-        //         is_owner: false       
-        //     }
-        // })
 
         const formatted_start_date = dayjs(trip.starts_at).format('LL')
         const formatted_end_date = dayjs(trip.ends_at).format('LL')
@@ -60,8 +44,6 @@ export async function confirmTrip(app: FastifyInstance){
 
         const mail = await getMailClient()
 
-        await Promise.all(
-            trip.participant.map(async (participant) => {  
                 
                 const confirmationLink = `http://localhost:3333/participants/${participant.id}/confirm`
                 const message = await mail.sendMail({
@@ -86,16 +68,7 @@ export async function confirmTrip(app: FastifyInstance){
                 })
         
                 console.log(nodemailer.getTestMessageUrl(message))
-            })
-        )
 
-
-
-        return reply.redirect(`http://localhost:3000/trips/${tripId}`)
-    
-    });
-
-        
-
-
+       return { participantId: participant.id };
+    })
 }
